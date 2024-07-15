@@ -42,7 +42,7 @@ namespace randFW {
 
 		LSFR(): start_state(randomNumberSeeds[lsfr_init_count])
 			{
-	      		        std::cout<<"Initializing with "<<lsfr_init_count<<" -> "<<randomNumberSeeds[lsfr_init_count]<<"\n";
+//	      		        std::cout<<"Initializing with "<<lsfr_init_count<<" -> "<<randomNumberSeeds[lsfr_init_count]<<"\n";
 				current_state=start_state;
 				lsfr_init_count++;
 			}
@@ -60,6 +60,7 @@ namespace randFW {
 	  public:
 		bool getRandomBit()
 		{
+		  #pragma HLS INLINE
 			bool x = current_state & 1u;
 			current_state = current_state >> 1;
 			if(x) current_state = current_state ^ 0xD008u;
@@ -71,6 +72,7 @@ namespace randFW {
 	  public:
 		bool getRandomBit()
 		{
+		  #pragma HLS INLINE
 			bool x = current_state & 1u;
 			current_state = current_state >> 1;
 			if(x) current_state = current_state ^ 0x6000u;  // If is not needed
@@ -84,6 +86,7 @@ namespace randFW {
 	  public:
 		bool getRandomBit()
 		{
+		  #pragma HLS INLINE
 			bool x = current_state & 1u;
 			current_state = current_state >> 1;
 			if(x) current_state = current_state ^ 0x3802u;  // If is not needed
@@ -97,9 +100,24 @@ namespace randFW {
 	  public:
 		bool getRandomBit()
 		{
+          #pragma HLS INLINE
 			bool x = current_state & 1u;
 			current_state = current_state >> 1;
 			if(x) current_state = current_state ^ 0x1C80u;  // If is not needed
+			return x;
+		}
+	};
+
+
+	class lsfr_8Bit : public LSFR<8>
+	  {
+	  public:
+		bool getRandomBit()
+		{
+          #pragma HLS INLINE
+			bool x = current_state & 1u;
+			current_state = current_state >> 1;
+			if(x) current_state = current_state ^ 0xB8u;  // If is not needed
 			return x;
 		}
 	};
@@ -116,6 +134,7 @@ namespace randFW {
 	public :
 		ap_uint<4> getRandom()
 		{
+          #pragma HLS PIPELINE
 			current_state= b3.getRandomBit()  <<3 | b2.getRandomBit() <<2 | b1.getRandomBit() <<1 | b0.getRandomBit()  ;
 			return current_state;
 		}
@@ -135,10 +154,12 @@ namespace randFW {
 	public :
 		ap_uint<16> getRandom()
 		{
+		    #pragma HLS PIPELINE
 			ap_uint<4> val;
 			current_state=b3[0].getRandomBit()  <<3 | b2[0].getRandomBit() <<2 | b1[0].getRandomBit() <<1 | b0[0].getRandomBit() ;
 			for(uint8_t i=1;i<4;i++ )
 			{
+				#pragma HLS UNROLL
 				current_state= current_state <<4 | b3[i].getRandomBit()  <<3 | b2[i].getRandomBit() <<2 | b1[i].getRandomBit() <<1 | b0[i].getRandomBit(); ;
 			}
 			return current_state;
@@ -146,6 +167,8 @@ namespace randFW {
 	};
 
 }
+
+void randWordGen16Bit(bool status,ap_uint<16> *randNum);
 
 #endif
 

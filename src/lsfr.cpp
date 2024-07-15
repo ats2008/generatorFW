@@ -38,3 +38,14 @@ void randGen(bool status,ap_uint<16> *randNum)
 }
 
 
+void randWordGen16Bit(bool status,ap_uint<16> *randNum)
+{
+  #pragma HLS PIPELINE  II=4
+
+   if(status){
+	   randFW::randomWord_16Bit word;
+	   *randNum=word.getRandom();
+    }
+}
+
+

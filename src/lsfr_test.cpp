@@ -1,9 +1,10 @@
 #include "lsfr.h"
 #include <fstream>
+#include <iostream>
 
 void randGen(bool,ap_uint<16> *x);
 
-void tets_lsfr()
+void unitTests_lsfr()
 {
 	randFW::lsfr_16Bit randGenerator[10];
 
@@ -21,9 +22,130 @@ void tets_lsfr()
 		std::cout<<"\n";
 	}
 
+
+	randFW::lsfr_8Bit randGeneratorZ;
+	randFW::lsfr_16Bit randGeneratorA;
+	randFW::lsfr_15Bit randGeneratorB;
+	randFW::lsfr_14Bit randGeneratorC;
+	randFW::lsfr_13Bit randGeneratorD;
+	ap_uint<16> init_state;
+
+	//  Validating 8-Bit LSFR
+	std::cout<<"\n\n> Validating the 8-bit lsfr \n";
+	init_state = randGeneratorZ.current_state;
+	uint64_t count=0,sucess=0;
+	while(true)
+	{
+		count++;randGeneratorZ.getRandomBit();
+		if(init_state==randGeneratorZ.current_state)
+		{
+			sucess=1;break;
+		}
+		if(count > (pow(2,9)+1))
+		{
+			std::cout<<" counter broke the loop \n";
+				break;
+		}
+
+	}
+	std::cout<<"   Found a match to the initial pattern : "<<sucess<<"\n"
+//			 <<"   Init Pattern : "<<init_state<<" final state : "<<randGeneratorD.current_state<<"\n"
+			 <<"        count = "<<count<<" | expected count = "<<pow(2,8)-1<<"\n";
+
+	//  Validating 13-Bit LSFR
+	std::cout<<"\n\n> Validating the 13-bit lsfr \n";
+	init_state = randGeneratorD.current_state;
+	count=0;sucess=0;
+	while(true)
+	{
+		count++;randGeneratorD.getRandomBit();
+		if(init_state==randGeneratorD.current_state)
+		{
+			sucess=1;break;
+		}
+		if(count > (pow(2,13)+1))
+		{
+			std::cout<<" counter broke the loop \n";
+				break;
+		}
+
+	}
+	std::cout<<"   Found a match to the initial pattern : "<<sucess<<"\n"
+//			 <<"   Init Pattern : "<<init_state<<" final state : "<<randGeneratorD.current_state<<"\n"
+			 <<"        count = "<<count<<" | expected count = "<<pow(2,13)-1<<"\n";
+
+
+	//  Validating 14-Bit LSFR
+	std::cout<<"\n\n> Validating the 14-bit lsfr \n";
+	init_state = randGeneratorC.current_state;
+	count=0;sucess=0;
+	while(true)
+	{
+		count++;randGeneratorC.getRandomBit();
+		if(init_state==randGeneratorC.current_state)
+		{
+			sucess=1;break;
+		}
+		if(count > (pow(2,14)+1))
+		{
+			std::cout<<" counter broke the loop \n";
+				break;
+		}
+
+	}
+	std::cout<<"   Found a match to the initial pattern : "<<sucess<<"\n"
+//			 <<"   Init Pattern : "<<init_state<<" final state : "<<randGeneratorD.current_state<<"\n"
+			 <<"        count = "<<count<<" | expected count = "<<pow(2,14)-1<<"\n";
+
+	//  Validating 15-Bit LSFR
+	std::cout<<"\n\n> Validating the 15-bit lsfr \n";
+	init_state = randGeneratorB.current_state;
+	count=0;sucess=0;
+	while(true)
+	{
+		count++;randGeneratorB.getRandomBit();
+		if(init_state==randGeneratorB.current_state)
+		{
+			sucess=1;break;
+		}
+		if(count > (pow(2,15)+1))
+		{
+			std::cout<<" counter broke the loop \n";
+				break;
+		}
+
+	}
+	std::cout<<"   Found a match to the initial pattern : "<<sucess<<"\n"
+//			 <<"   Init Pattern : "<<init_state<<" final state : "<<randGeneratorD.current_state<<"\n"
+			 <<"        count = "<<count<<" | expected count = "<<pow(2,15)-1<<"\n";
+
+
+	//  Validating 16-Bit LSFR
+	std::cout<<"\n\n> Validating the 16-bit lsfr \n";
+	init_state = randGeneratorA.current_state;
+	count=0;sucess=0;
+	while(true)
+	{
+		count++;randGeneratorA.getRandomBit();
+		if(init_state==randGeneratorA.current_state)
+		{
+			sucess=1;break;
+		}
+		if(count > (pow(2,16)+1))
+		{
+			std::cout<<" counter broke the loop \n";
+				break;
+		}
+
+	}
+	std::cout<<"   Found a match to the initial pattern : "<<sucess<<"\n"
+//			 <<"   Init Pattern : "<<init_state<<" final state : "<<randGeneratorA.current_state<<"\n"
+			 <<"        count = "<<count<<" | expected count = "<<pow(2,16)-1<<"\n";
+
+
 }
 
-void test_randGen()
+void unitTest_randGen()
 {
 	ap_uint<16> randNum;
 	for(int j=0 ; j < 10 ; j++){
@@ -32,7 +154,7 @@ void test_randGen()
 			}
 }
 
-void test_randomWordMaker()
+void unitTest_randomWordMaker()
 {
 	randFW::randomWord_4Bit word;
 
@@ -43,7 +165,7 @@ void test_randomWordMaker()
 		}
 }
 
-void test_randomWordMaker_16Bit()
+void unitTest_randomWordMaker_16Bit()
 {
 
 	ofstream outFile("randOut_16Bit.txt");
@@ -64,11 +186,11 @@ void test_randomWordMaker_16Bit()
 }
 
 
-void test_randomWordMaker_4Bit()
+void unitTest_randomWordMaker_4Bit()
 {
 
 	ofstream outFile("randOut_4Bit.txt");
-	randFW::randomWord_16Bit word;
+	randFW::randomWord_4Bit word;
 		ap_uint<4> randVal;
 
 		for(int j=0 ; j < 1000*1000 ; j++){
@@ -83,7 +205,7 @@ void test_randomWordMaker_4Bit()
 		}
 		outFile.close();
 }
-void test_randomWordMaker_16BitCHK()
+void unitTest_randomWordMaker_16BitCHK()
 {
 
 	randFW::randomWord_16Bit word;
@@ -95,16 +217,32 @@ void test_randomWordMaker_16BitCHK()
 		}
 }
 
+void testBench_randWordGen16Bit()
+{
+
+	randFW::lsfr_8Bit statusGEN;
+	ap_uint<16> randVal;
+	bool status;
+	for(int i=0;i<20;i++)
+	{
+		status=statusGEN.getRandomBit();
+		randWordGen16Bit(status, &randVal);
+		std::cout<<" i = "<<i<<" | status : "<<status<<" | random word  : "<<randVal<<"\n";
+	}
+
+}
 
 
 int main()
 {
 
-//  tets_lsfr();
-//  test_randGen();
-//	test_randomWordMaker();
-  test_randomWordMaker_16Bit();
-//  test_randomWordMaker_4Bit();
-//	test_randomWordMaker_16BitCHK();
+//  unitTests_lsfr();
+//  unitTest_randGen();
+//	unitTest_randomWordMaker();
+//  unitTest_randomWordMaker_16Bit();
+//  unitTest_randomWordMaker_4Bit();
+//	unitTest_randomWordMaker_16BitCHK();
+
+	testBench_randWordGen16Bit();
 	return 0;
 }
