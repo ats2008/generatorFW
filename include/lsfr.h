@@ -168,7 +168,7 @@ namespace randFW {
 
 }
 
-void randWordGen16Bit(bool status,ap_uint<16> *randNum);
+extern "C" void randWordGen16Bit(bool status,ap_uint<16> *randNum);
 
 #endif
 

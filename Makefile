@@ -23,6 +23,7 @@ TARGET := hw_emu
 #DEVICE := xilinx_zcu102_base_202320_1
 DEVICE := xilinx_zcu102_base_dfx_202320_1
 
+BASE_INCLUDES=-Iinclude/ -I$(XILINX_HLS)/include
 
 ####   SYSROOT and related paths
 SYSROOT=/opt/xilinx/platforms/sysroots/cortexa72-cortexa53-xilinx-linux/
@@ -37,17 +38,17 @@ endif
 XCLBIN := krnl.$(TARGET).xclbin
 
 # Host building global settings
-CXXFLAGS += -g -std=c++17 -Wall -O0 -I./include
+CXXFLAGS += -g -std=c++17 -Wall -O0 $(BASE_INCLUDES)
 ifeq ($(TARGET),hw)
 	CXX=aarch64-linux-gnu-g++
 endif
 
 # Kernel compiler & linker global settings
-CLFLAGS := -t $(TARGET) --platform $(DEVICE) -I./include
+CLFLAGS := -t $(TARGET) --platform $(DEVICE)
    
 # Host executable customization
 EXECUTABLE := host
-LDCLFLAGS := -t $(TARGET) --platform $(DEVICE) --config configs/randGen.cfg -I./include
+LDCLFLAGS := -t $(TARGET) --platform $(DEVICE) --config configs/randGen.cfg $(BASE_INCLUDES)
 
 # Package : SD CARD Boot Image
 SD_IMAGE=./package
@@ -65,7 +66,7 @@ $(XO): ./src/lsfr.cpp
 ifeq ($(TARGET),sw_emu)
 	v++ $(CLFLAGS) -c -k randWordGen16Bit -g -o'$@' '$<'
 else
-	v++ --platform $(DEVICE) -c --mode hls --config configs/hls_config.cfg
+	v++ --platform $(DEVICE) -c --mode hls --config configs/hls_config.cfg 
 endif
 
 $(XCLBIN): $(XO) 
@@ -73,7 +74,7 @@ $(XCLBIN): $(XO)
 
 # Building Executable
 ifeq ($(TARGET),hw)
-$(EXECUTABLE): ./src/host_randGen.cpp.cpp 
+$(EXECUTABLE): ./src/host_randGen.cpp
 	echo "Making exe for aarch64"
 	${CXX} $(CXXFLAGS) -o '$@.aarch64' '$<'  \
 		--sysroot=${SYSROOT} \
