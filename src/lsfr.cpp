@@ -38,7 +38,7 @@ void randGen(bool status,ap_uint<16> *randNum)
 }
 
 
-extern "C" void randWordGen16Bit(bool status,ap_uint<16> *randNum])
+extern "C" void randWordGen16Bit(bool status,ap_uint<16> randNum[5]])
 {
   #pragma HLS INTERFACE s_axilite port=status  bundle=control
   #pragma HLS INTERFACE s_axilite port=randNum  bundle=control
@@ -47,7 +47,8 @@ extern "C" void randWordGen16Bit(bool status,ap_uint<16> *randNum])
   #pragma HLS PIPELINE  II=4
    if(status){
 	   randFW::randomWord_16Bit word;
-	   *randNum=word.getRandom();
+	 for(size_t i=0;i<5;i++)
+	   randNum[i]=word.getRandom();
     }
 }
 
