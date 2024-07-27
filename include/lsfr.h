@@ -38,21 +38,28 @@ namespace randFW {
 
 	public :
 		const ap_uint<NBIT> start_state;
+		ap_uint<8> init_state_id;
 		ap_uint<NBIT> current_state;
 
 		LSFR(): start_state(randomNumberSeeds[lsfr_init_count])
 			{
 //	      		        std::cout<<"Initializing with "<<lsfr_init_count<<" -> "<<randomNumberSeeds[lsfr_init_count]<<"\n";
 				current_state=start_state;
+				init_state_id=lsfr_init_count;
 				lsfr_init_count++;
 			}
-
+		
 
 		LSFR(ap_uint<NBIT> start_val):
 		  start_state(start_val)
 			{
 				current_state=start_state;
 			}
+		void init()
+		   {
+				current_state=randFW::randomNumberSeeds[init_state_id];
+		   }
+	
 	};
 
 	class lsfr_16Bit : public LSFR<16>
@@ -141,7 +148,7 @@ namespace randFW {
 
 	};
 
-	class randomWord_16Bit {
+	struct randomWord_16Bit {
 
 		static lsfr_16Bit b3[4];
 		static lsfr_15Bit b2[4];
@@ -149,12 +156,27 @@ namespace randFW {
 		static lsfr_13Bit b0[4];
 
 		static ap_uint<16> current_state;
-
-
-	public :
+		static bool isInitialized;
+	      
+		void init()
+		{
+			if(not isInitialized)
+		        {		
+			    for(uint8_t i=0;i<4;i++ )
+				{
+					b3[i].init();
+                        	        b2[i].init();
+                        	        b1[i].init();
+                        	        b0[i].init();
+				}	
+			isInitialized=true;
+			}
+			
+		}
 		ap_uint<16> getRandom()
 		{
 		    #pragma HLS PIPELINE
+		  init();
 			ap_uint<4> val;
 			current_state=b3[0].getRandomBit()  <<3 | b2[0].getRandomBit() <<2 | b1[0].getRandomBit() <<1 | b0[0].getRandomBit() ;
 			for(uint8_t i=1;i<4;i++ )

@@ -9,6 +9,7 @@ lsfr_15Bit randFW::randomWord_4Bit::b2=lsfr_15Bit();
 lsfr_14Bit randFW::randomWord_4Bit::b1=lsfr_14Bit();
 lsfr_13Bit randFW::randomWord_4Bit::b0=lsfr_13Bit();
 
+bool randFW::randomWord_16Bit::isInitialized=0;
 ap_uint<16> randFW::randomWord_16Bit::current_state=0;
 lsfr_16Bit  randFW::randomWord_16Bit::b3[4] ;
 lsfr_15Bit  randFW::randomWord_16Bit::b2[4] ;
@@ -49,6 +50,9 @@ extern "C" void randWordGen16Bit(bool status,ap_uint<16> randNum[5])
 	   randFW::randomWord_16Bit word;
 	 for(size_t i=0;i<5;i++)
 	   randNum[i]=word.getRandom();
+	 randNum[2]=word.b0[1].current_state;
+	 randNum[3]=word.b0[1].start_state;
+	 randNum[4]=word.b0[1].init_state_id;
     }
 }
 
