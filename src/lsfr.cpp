@@ -38,7 +38,7 @@ void randGen(bool status,ap_uint<16> *randNum)
 }
 
 
-extern "C" void randWordGen16Bit(bool status,ap_uint<16> randNum[5]])
+extern "C" void randWordGen16Bit(bool status,ap_uint<16> randNum[5])
 {
   #pragma HLS INTERFACE s_axilite port=status  bundle=control
   #pragma HLS INTERFACE s_axilite port=randNum  bundle=control
