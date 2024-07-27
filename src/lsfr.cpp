@@ -16,6 +16,13 @@ lsfr_15Bit  randFW::randomWord_16Bit::b2[4] ;
 lsfr_14Bit  randFW::randomWord_16Bit::b1[4] ;
 lsfr_13Bit  randFW::randomWord_16Bit::b0[4] ;
 
+bool randFW::randomWord_16BitV2::isInitialized=0;
+ap_uint<8> randFW::randomWord_16BitV2::init_state_id[16];
+ap_uint<16> randFW::randomWord_16BitV2::current_state_b3[4] ;
+ap_uint<15> randFW::randomWord_16BitV2::current_state_b2[4] ;
+ap_uint<14> randFW::randomWord_16BitV2::current_state_b1[4] ;
+ap_uint<13> randFW::randomWord_16BitV2::current_state_b0[4] ;
+
 /*
 for(uint8_t i=0;i<4;i++ )
 {
@@ -39,21 +46,25 @@ void randGen(bool status,ap_uint<16> *randNum)
 }
 
 
-extern "C" void randWordGen16Bit(bool status,ap_uint<16> randNum[5])
-{
-  #pragma HLS INTERFACE s_axilite port=status  bundle=control
-  #pragma HLS INTERFACE s_axilite port=randNum  bundle=control
-  #pragma HLS INTERFACE s_axilite port=return bundle=control
+extern "C" {
 
-  #pragma HLS PIPELINE  II=4
-   if(status){
-	   randFW::randomWord_16Bit word;
-	 for(size_t i=0;i<5;i++)
-	   randNum[i]=word.getRandom();
-	 randNum[2]=word.b0[1].current_state;
-	 randNum[3]=word.b0[1].start_state;
-	 randNum[4]=word.b0[1].init_state_id;
-    }
+void randWordGen16Bit(bool status,ap_uint<16> randNum[5])
+ {
+   #pragma HLS INTERFACE mode=ap_vld port=status
+   #pragma HLS INTERFACE m_axi offset=SLAVE bundle=gmem port=randNum 
+   #pragma HLS INTERFACE s_axilite port=randNum 
+   #pragma HLS INTERFACE mode=s_axilite port=return
+   
+   #pragma HLS PIPELINE style=flp
+ 
+ 
+   randFW::randomWord_16Bit word;
+   word.init();
+   for(int k=0;k < 5; k++)
+     {
+        //randNum[k]=testWord.getRandom();
+        randNum[k]=word.getRandom();
+     }
+ }
+
 }
-
-

@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     std::cout << "synchronize input buffer data to device global memory\n";
     boIn1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
-    for(int i=0;i< 22;i++)
+    for(int i=0;i< 256;i++)
     {
     	std::cout << "  > Execution of the kernel : "<<i<<"\n";
 	bool upd = (i%3)==0 ;
@@ -67,8 +67,12 @@ int main(int argc, char** argv) {
     	run.wait();
     	std::cout << "  > Get the output data from the device" << std::endl;
     	boIn1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-	std::cout << "    >  Value read as : "<<bo0_map[0]<<"\n";
-    }
+   	std::cout << "    > ["<<i<<"] "<<" Value read as : ";
+	for(int j=0;j<5;j++)
+		std::cout<<bo0_map[j]<<"  |  ";
+	std::cout<<"\n"; 
+
+   }
 
     // Get the output;
     //for (int i = 0; i < DATA_SIZE; ++i) {

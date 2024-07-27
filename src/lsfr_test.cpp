@@ -221,15 +221,17 @@ void testBench_randWordGen16Bit()
 {
 
 	randFW::lsfr_8Bit statusGEN;
-	ap_uint<16> randVal;
+	ap_uint<16> randVal[5];
 	bool status;
 	for(int i=0;i<20;i++)
 	{
 		status=statusGEN.getRandomBit();
-		randWordGen16Bit(status, &randVal);
-		std::cout<<" i = "<<i<<" | status : "<<status<<" | random word  : "<<randVal<<"\n";
+		randWordGen16Bit(status,randVal);
+		std::cout << "   ["<<i<<"]   Value read as : ";
+		for(int j=0;j<5;j++)
+			std::cout<<randVal[j]<<"  |  ";
+		std::cout<<"\n";
 	}
-
 }
 
 

@@ -34,18 +34,19 @@ namespace randFW {
 		static ap_uint<8> lsfr_init_count;
 	};
 
-	template< size_t NBIT > struct LSFR :  randBase {
+	template< size_t NBIT > struct LSFR    {
 
-		const ap_uint<NBIT> start_state;
+		ap_uint<NBIT> start_state;
 		ap_uint<8> init_state_id;
 		ap_uint<NBIT> current_state;
 
-		LSFR(): start_state(randomNumberSeeds[lsfr_init_count])
+		LSFR() //start_state(randomNumberSeeds[lsfr_init_count])
 			{
-//	      		        std::cout<<"Initializing with "<<lsfr_init_count<<" -> "<<randomNumberSeeds[lsfr_init_count]<<"\n";
-				init_state_id=lsfr_init_count;
+//	      		        std::cout<<"Initializing with "<<randBase::lsfr_init_count<<" -> "<<randomNumberSeeds[randBase::lsfr_init_count]<<"\n";
+				init_state_id=randBase::lsfr_init_count;
+				start_state=randomNumberSeeds[randBase::lsfr_init_count];
 				current_state=start_state;
-				lsfr_init_count++;
+				randBase::lsfr_init_count++;
 			}
 		
 
@@ -168,7 +169,6 @@ namespace randFW {
 		ap_uint<16> getRandom()
 		{
 		    #pragma HLS PIPELINE
-		  init();
 			current_state=b3[0].getRandomBit()  <<3 | b2[0].getRandomBit() <<2 | b1[0].getRandomBit() <<1 | b0[0].getRandomBit() ;
 			for(uint8_t i=1;i<4;i++ )
 			{
@@ -178,44 +178,44 @@ namespace randFW {
 			return current_state;
 		}
 	};
-	struct randomWord_16BitV2 {
+	struct randomWord_16BitStandalone {
 
 		//static lsfr_16Bit b3[4];
 		//static lsfr_15Bit b2[4];
 		//static lsfr_14Bit b1[4];
 		//static lsfr_13Bit b0[4];
 		
-	        ap_uint<8>  init_id[16];
-		ap_uint<16> current_state_b3[4];
-		ap_uint<15> current_state_b2[4];
-		ap_uint<14> current_state_b1[4];
-		ap_uint<13> current_state_b0[4];
+	        static ap_uint<8>  init_state_id[16];
+		static ap_uint<16> current_state_b3[4];
+		static ap_uint<15> current_state_b2[4];
+		static ap_uint<14> current_state_b1[4];
+		static ap_uint<13> current_state_b0[4];
 
 		ap_uint<16> current_state_w;
 
-		bool isInitialized;
+		static bool isInitialized;
 
-		randomWord_16BitV2()
+		randomWord_16BitStandalone()
 		{
 			ap_uint<5> idx(0);
 			ap_uint<8> lsfr_init_count = randFW::randBase::lsfr_init_count;
 			for(int i=0;i<4;i++)
 			{
 				current_state_b0[i] = randomNumberSeeds[lsfr_init_count];
-				init_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
+				init_state_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
 			
 				current_state_b1[i] = randomNumberSeeds[lsfr_init_count];
-				init_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
+				init_state_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
 			
 				current_state_b2[i] = randomNumberSeeds[lsfr_init_count];
-				init_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
+				init_state_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
 			
 				current_state_b3[i] = randomNumberSeeds[lsfr_init_count];
-				init_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
+				init_state_id[idx]=lsfr_init_count; lsfr_init_count++;idx++;
 			
 			}		
 			randFW::randBase::lsfr_init_count = lsfr_init_count ;
-			std::cout<<" Constructor for randomWord_16BitV2  done ! the init bits for the lsfrs are : \n";
+			std::cout<<" Constructor for randomWord_16BitStandalone  done ! the init bits for the lsfrs are : \n";
 			for(int i=0;i<4;i++)
 			{
 				std::cout<<"    --> "<<current_state_b0[i]<<" | "<<current_state_b1[i]<<" | "<<current_state_b2[i]<<" | "<<current_state_b3[i]<<"\n";
@@ -223,14 +223,14 @@ namespace randFW {
 
 		}
 		
-		void initW() {
+		void init() {
 		  if(not isInitialized)
 		    for(uint8_t i=0;i<4;i++ )
 		    {
-				current_state_b0[i] = randomNumberSeeds[init_id[i*4+0]];
-				current_state_b1[i] = randomNumberSeeds[init_id[i*4+1]];
-				current_state_b2[i] = randomNumberSeeds[init_id[i*4+2]];
-				current_state_b3[i] = randomNumberSeeds[init_id[i*4+3]];
+				current_state_b0[i] = randomNumberSeeds[init_state_id[i*4+0]];
+				current_state_b1[i] = randomNumberSeeds[init_state_id[i*4+1]];
+				current_state_b2[i] = randomNumberSeeds[init_state_id[i*4+2]];
+				current_state_b3[i] = randomNumberSeeds[init_state_id[i*4+3]];
 		    }
 		  isInitialized=true;
 		}
@@ -261,7 +261,7 @@ namespace randFW {
 			if(x) current_state_b3[i] = current_state_b3[i] ^ 0xD008u;
 			
 		    }
-			std::cout<<" update for randomWord_16BitV2  done ! the bits for the lsfrs states are : \n";
+			std::cout<<" update for randomWord_16BitStandalone  done ! the bits for the lsfrs states are : \n";
 			for(int i=0;i<4;i++)
 			{
 				std::cout<<"    --> "<<current_state_b0[i]<<" | "<<current_state_b1[i]<<" | "<<current_state_b2[i]<<" | "<<current_state_b3[i]<<"\n";
@@ -281,13 +281,13 @@ namespace randFW {
 		ap_uint<16> getRandom()
 		{
 		    #pragma HLS PIPELINE
-	                std::cout<<"  [KERNEL] call : randomWord_16Bit::getRandom() | current_state "<<current_state_w<<"\n";
+	                std::cout<<"  [KERNEL] call : randomWord_16BitStandalone::getRandom() | current_state "<<current_state_w<<"\n";
 			update_state();		
-	                std::cout<<"  [KERNEL] call : randomWord_16Bit::getRandom() | current_state [upd] "<<current_state_w<<"\n";
+	                std::cout<<"  [KERNEL] call : randomWord_16BitStandalone::getRandom() | current_state [upd] "<<current_state_w<<"\n";
 			return current_state_w;
 		}
 	};
-	static randomWord_16BitV2 testWord;
+	static randomWord_16BitStandalone testWord;
 }
 
 extern "C" void randWordGen16Bit(bool status,ap_uint<16> randNum[5]);

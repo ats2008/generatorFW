@@ -39,19 +39,23 @@ XCLBIN := krnl.$(TARGET).xclbin
 
 # Host building global settings
 CXXFLAGS += -g -std=c++17 -Wall -O0 $(BASE_INCLUDES)
-ifeq ($(TARGET),hw)
-	CXX=aarch64-linux-gnu-g++
-endif
 
 # Kernel compiler & linker global settings
-CLFLAGS := -t $(TARGET) --platform $(DEVICE)
+CLFLAGS := -t $(TARGET) --platform $(DEVICE) $(BASE_INCLUDES)
    
 # Host executable customization
 EXECUTABLE := host
 LDCLFLAGS := -t $(TARGET) --platform $(DEVICE) --config configs/randGen.cfg $(BASE_INCLUDES)
+TEST_EXE := testbench
 
 # Package : SD CARD Boot Image
 SD_IMAGE=./package
+
+##  HOST build switches
+ifeq ($(TARGET),hw)
+	CXX=aarch64-linux-gnu-g++
+	EXECUTABLE=host.aarch64
+endif
 
 all: $(EXECUTABLE) $(XO) $(XCLBIN) emconfig
 
@@ -61,8 +65,10 @@ xclbin: $(XO) $(XCLBIN)
 
 image: $(SD_IMAGE)
 
+test: $(TEST_EXE)
+
 # Building kernel
-$(XO): ./src/lsfr.cpp
+$(XO): ./src/lsfr.cpp ./include/lsfr.h
 ifeq ($(TARGET),sw_emu)
 	v++ $(CLFLAGS) -c -k randWordGen16Bit -g -o'$@' '$<'
 else
@@ -76,7 +82,7 @@ $(XCLBIN): $(XO)
 ifeq ($(TARGET),hw)
 $(EXECUTABLE): ./src/host_randGen.cpp
 	echo "Making exe for aarch64"
-	${CXX} $(CXXFLAGS) -o '$@.aarch64' '$<'  \
+	${CXX} $(CXXFLAGS) -o '$@' '$<'  \
 		--sysroot=${SYSROOT} \
 		-I${XILINX_VIVADO}/include/ \
 		-I${SYSROOT}/usr/include/xrt/ \
@@ -111,6 +117,11 @@ ${SD_IMAGE}:
 	v++ -p -t hw --platform ${DEVICE} --config configs/zcu102.cfg  $(XCLBIN) --package.out_dir $(SD_IMAGE) --package.sd_file configs/xrt.ini \
 		--package.rootfs $(ROOTFS)/rootfs.ext4 \
 		--package.sd_file $(ROOTFS)/Image 
+
+${TEST_EXE}: src/lsfr_test.cpp  src/lsfr.cpp include/lsfr.h
+	${CXX} $(CXXFLAGS)  -o '$@' '$<'  src/lsfr.cpp
+  
+
 
 # Cleaning stuff
 .PHONY: clean
