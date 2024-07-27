@@ -129,12 +129,12 @@ ${TEST_EXE}: src/lsfr_test.cpp  src/lsfr.cpp include/lsfr.h
 RMDIR = rm -rf
 
 clean:
-	-$(RMDIR) $(EXECUTABLE) $(XCLBIN)/{*sw_emu*,*hw_emu*}
+	-$(RMDIR) $(EXECUTABLE) $(XCLBIN)/{*sw_emu*,*hw_emu*} $(TEST_EXE)
 	-$(RMDIR) TempConfig system_estimate.xtxt *.rpt
 	-$(RMDIR) *.protoinst _v++_* .Xil emconfig.json dltmp* xmltmp* *.log *.jou 
 
 cleanall: clean
-	-$(RMDIR) $(XCLBIN) *.xo *.xclbin* *.wcfg *.wdb *.csv *.compile_summary *.run_summary host*
+	-$(RMDIR) $(XCLBIN) *.xo *.xclbin* *.wcfg *.wdb *.csv *.compile_summary *.run_summary host* $(TEST_EXE)
 	-$(RMDIR) _x* .run/
 	-$(RMDIR) $(SD_IMAGE)
 
