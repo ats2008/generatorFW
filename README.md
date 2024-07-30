@@ -26,5 +26,10 @@ for full set of options `make help`
 
 
 
+_AStyle configuration_
+```
+astyle -s4 --indent=spaces=4 --style=bsd -N
+```	
+
 _codes are tesed on the ZCU102 Ultrascale+ MPSoc development board from Xilinx_
 

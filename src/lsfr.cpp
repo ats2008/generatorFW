@@ -39,32 +39,38 @@ for(uint8_t i=0;i<4;i++ )
 void randGen(bool status,ap_uint<16> *randNum)
 {
 
-   if(status){
-	   randFW::lsfr_16Bit randGenerator;
-	   *randNum=randGenerator.getRandomBit();
+    if(status)
+    {
+        randFW::lsfr_16Bit randGenerator;
+        *randNum=randGenerator.getRandomBit();
     }
 }
 
 
 extern "C" {
 
-void randWordGen16Bit(bool status,ap_uint<16> randNum[5])
- {
-   #pragma HLS INTERFACE mode=ap_vld port=status
-   #pragma HLS INTERFACE m_axi offset=SLAVE bundle=gmem port=randNum 
-   #pragma HLS INTERFACE s_axilite port=randNum 
-   #pragma HLS INTERFACE mode=s_axilite port=return
-   
-   #pragma HLS PIPELINE style=flp
- 
- 
-   randFW::randomWord_16Bit word;
-   word.init();
-   for(int k=0;k < 5; k++)
-     {
-        //randNum[k]=testWord.getRandom();
-        randNum[k]=word.getRandom();
-     }
- }
+    void init_generator()
+    {
+        randFW::randomWord_16Bit word;
+        word.init();
+    }
+
+    void randWordGen16Bit(bool status,ap_uint<16> randNum[5])
+    {
+        #pragma HLS INTERFACE mode=ap_vld port=status
+        #pragma HLS INTERFACE m_axi offset=SLAVE bundle=gmem port=randNum
+        #pragma HLS INTERFACE s_axilite port=randNum
+        #pragma HLS INTERFACE mode=s_axilite port=return
+
+        #pragma HLS PIPELINE style=flp
+
+
+        randFW::randomWord_16Bit word;
+        for(int k=0; k < 5; k++)
+        {
+            //randNum[k]=testWord.getRandom();
+            randNum[k]=word.getRandom();
+        }
+    }
 
 }
