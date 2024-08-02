@@ -33,7 +33,8 @@ SYSROOT=/opt/xilinx/platforms/sysroots/cortexa72-cortexa53-xilinx-linux/
 ROOTFS=/opt/xilinx_local/xilinx-zynqmp-common-v2023.2
 
 
-ifeq (${KERNEL},drellYanPairGenerator)
+ifeq (${KERNEL},DY)
+    KERNEL := drellYanPairGenerator
     HOST_SRC=src/host_dyGen.cpp 
     VPP_CFG=configs/dyGen.cfg
     HLS_CFG := configs/hls_config_dyGen.cfg

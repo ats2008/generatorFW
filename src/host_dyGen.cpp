@@ -75,7 +75,7 @@ int main(int argc, char** argv)
     
     randFW::muon mu;
     ofstream ofile("data.dat");
-    for(size_t j=0;j<1024;j++) {
+    for(size_t j=0;j<100;j++) {
       
         if((j%8)==0)
             std::cout<<"  Making j="<<j<<" th loop ! \n";
