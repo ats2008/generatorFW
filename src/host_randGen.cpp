@@ -15,17 +15,22 @@
 #include "xrt/xrt_kernel.h"
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 
     std::string binaryFile;
     std::cout << "argc = " << argc << std::endl;
-    for(int i=0; i < argc; i++){
-	std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
+    for(int i=0; i < argc; i++)
+    {
+        std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
     }
-    if (argc > 1) {
-	binaryFile = argv[1];
-    } else {
-	binaryFile = "./krnl_vadd.sw_emu.xclbin";
+    if (argc > 1)
+    {
+        binaryFile = argv[1];
+    }
+    else
+    {
+        binaryFile = "./krnl_vadd.sw_emu.xclbin";
     }
 
     // Read settings
@@ -59,26 +64,26 @@ int main(int argc, char** argv) {
     std::cout << "synchronize input buffer data to device global memory\n";
     boIn1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
-    for(int i=0;i< 256;i++)
+    for(int i=0; i< 256; i++)
     {
-    	std::cout << "  > Execution of the kernel : "<<i<<"\n";
-	bool upd = (i%3)==0 ;
-	auto run = krnl(upd,boIn1); //DATA_SIZE=size
-    	run.wait();
-    	std::cout << "  > Get the output data from the device" << std::endl;
-    	boIn1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-   	std::cout << "    > ["<<i<<"] "<<" Value read as : ";
-	for(int j=0;j<5;j++)
-		std::cout<<bo0_map[j]<<"  |  ";
-	std::cout<<"\n"; 
+        std::cout << "  > Execution of the kernel : "<<i<<"\n";
+        bool upd = (i%3)==0 ;
+        auto run = krnl(upd,boIn1); //DATA_SIZE=size
+        run.wait();
+        std::cout << "  > Get the output data from the device" << std::endl;
+        boIn1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+        std::cout << "    > ["<<i<<"] "<<" Value read as : ";
+        for(int j=0; j<5; j++)
+            std::cout<<bo0_map[j]<<"  |  ";
+        std::cout<<"\n";
 
-   }
+    }
 
     // Get the output;
     //for (int i = 0; i < DATA_SIZE; ++i) {
     //		std::cout<<"  > Comparing "<<i<<" -> referance : "<<bufReference[i]<<",  bo2_map : "<<bo2_map[i]<<"\n";
     //}
-    
+
     std::cout << "Existing the Host application ! \n";
     return 0;
 }
