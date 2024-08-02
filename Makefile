@@ -22,7 +22,6 @@ help:
 TARGET := hw_emu
 #DEVICE := xilinx_zcu102_base_202320_1
 DEVICE := xilinx_zcu102_base_dfx_202320_1
-KERNEL := randWordGen16Bit
 HOST_SRC := ./src/host_randGen.cpp src/lsfr.cpp
 BASE_INCLUDES :=-Iinclude/ -I$(XILINX_HLS)/include
 VPP_CFG := configs/randGen.cfg
@@ -37,7 +36,9 @@ ifeq (${KERNEL},DY)
     KERNEL := drellYanPairGenerator
     HOST_SRC=src/host_dyGen.cpp 
     VPP_CFG=configs/dyGen.cfg
-    HLS_CFG := configs/hls_config_dyGen.cfg
+    HLS_CFG=configs/hls_config_dyGen.cfg
+else
+    KERNEL := randWordGen16Bit
 endif
 
 

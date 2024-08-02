@@ -67,20 +67,21 @@ int main(int argc, char** argv)
     //boIn1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
     std::cout << "  > Execution of the kernel : drellYanPairGenerator "<<"\n";
-        auto run = krnl(mu1,mu2); //DATA_SIZE=size
-        run.wait();
-        std::cout << "  > Get the output data from the device" << std::endl;
-        mu1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-        mu2.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-    
+    auto run = krnl(mu1,mu2); //DATA_SIZE=size
+    run.wait();
+    std::cout << "  > Get the output data from the device" << std::endl;
+    mu1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+    mu2.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+
     randFW::muon mu;
     ofstream ofile("data.dat");
-    for(size_t j=0;j<100;j++) {
-      
+    for(size_t j=0; j<100; j++)
+    {
+
         if((j%8)==0)
             std::cout<<"  Making j="<<j<<" th loop ! \n";
-        
-        for(int i=0;i<N_DY_GEN;i++)
+
+        for(int i=0; i<N_DY_GEN; i++)
         {
             mu.unpack(mu1_map[i]);
             ofile<<i+j*1024<<",";
@@ -89,14 +90,15 @@ int main(int argc, char** argv)
             ofile<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"";
             ofile<<"\n";
             if((j%16)==0)
-            if((i%256)==0){
-                std::cout<<"  > "<<mu1_map[i]<<" | "<<mu2_map[i]<<"\n";
-                mu.unpack(mu1_map[i]);
-                std::cout<<"      mu1 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
-                mu.unpack(mu2_map[i]);
-                std::cout<<"      mu2 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
+                if((i%256)==0)
+                {
+                    std::cout<<"  > "<<mu1_map[i]<<" | "<<mu2_map[i]<<"\n";
+                    mu.unpack(mu1_map[i]);
+                    std::cout<<"      mu1 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
+                    mu.unpack(mu2_map[i]);
+                    std::cout<<"      mu2 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
+                }
         }
-    }
     }
     ofile.close();
 

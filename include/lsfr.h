@@ -63,7 +63,7 @@ namespace randFW
         91.905,92.007,92.116,92.234,92.353,92.526,92.677,92.895,93.201,93.523,
         93.993,94.565,95.708,97.420,102.239,109.776,174.041
     };
-    
+
 
 
     struct randBase
@@ -337,9 +337,9 @@ namespace randFW
         }
     };
     static randomWord_16BitStandalone testWord;
-    
-    struct muon 
-{
+
+    struct muon
+    {
         ap_ufixed<12,8> pt;
         ap_fixed<10,4>  eta;
         ap_ufixed<10,3> phi;
@@ -354,22 +354,28 @@ namespace randFW
             phi(9,0) =data( 9, 0);
         }
 
-};
-    struct DellYanGenerator
+    };
+
+    struct GeneratorBase :
     {
         static ap_fixed<16,2> _lut_sintheta[1024];
         static ap_fixed<10,4> _lut_eta[1024];
         static ap_ufixed<10,3> _lut_phi[256];
-        ap_uint<64>  getDimuonPairs();   
+        static bool isInitialized;
         void init();
+    }
+
+    struct DellYanGenerator
+    {
+        ap_uint<64>  getDimuonPairs();
     };
-    
+
 
 }
 
-extern "C" { 
+extern "C" {
     void randWordGen16Bit(bool status,ap_uint<16> randNum[5]);
-    void drellYanPairGenerator( ap_uint<32> MU1[N_DY_GEN] , ap_uint<32> MU2[N_DY_GEN]);
+    void drellYanPairGenerator( ap_uint<32> MU1[N_DY_GEN], ap_uint<32> MU2[N_DY_GEN]);
 }
 
 #endif

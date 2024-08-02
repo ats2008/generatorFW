@@ -261,37 +261,60 @@ void testBench_DYGen()
     ap_fixed<16,2> b;
     ap_fixed<10,4> c;
     ap_ufixed<10,3> d;
-    
-    b=-0.01  ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=0.51   ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=-0.999   ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=0.999   ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=1.01   ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=2.0001 ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=0.0001 ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=0.001  ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=0.01   ; std::cout<<__LINE__<<" | "<<b<<" \n";
-    b=0.484123   ; std::cout<<__LINE__<<" | "<<b<<" \n";
 
-    c=2.0    ; std::cout<<__LINE__<<" | "<<c<<" \n";
-    c=7.0    ; std::cout<<__LINE__<<" | "<<c<<" \n";
-    c=4.0    ; std::cout<<__LINE__<<" | "<<c<<" \n";
-    c=3.0    ; std::cout<<__LINE__<<" | "<<c<<" \n";
-    c=-3.0    ; std::cout<<__LINE__<<" | "<<c<<" \n";
-    c=-4.0    ; std::cout<<__LINE__<<" | "<<c<<" \n";
-    
-    d=2.0    ; std::cout<<__LINE__<<" | "<<d<<" \n";
-    d=7.0    ; std::cout<<__LINE__<<" | "<<d<<" \n";
-    d=4.0    ; std::cout<<__LINE__<<" | "<<d<<" \n";
-    d=3.0    ; std::cout<<__LINE__<<" | "<<d<<" \n";
-    d=0.0    ; std::cout<<__LINE__<<" | "<<d<<" \n";
-    d=0.0    ; std::cout<<__LINE__<<" | "<<(d<<5)<<" \n";
+    b=-0.01  ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=0.51   ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=-0.999   ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=0.999   ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=1.01   ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=2.0001 ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=0.0001 ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=0.001  ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=0.01   ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
+    b=0.484123   ;
+    std::cout<<__LINE__<<" | "<<b<<" \n";
 
-    ap_uint<32> MU1[N_DY_GEN] ; ap_uint<32> MU2[N_DY_GEN] ;
-    drellYanPairGenerator( MU1,MU2 );   
+    c=2.0    ;
+    std::cout<<__LINE__<<" | "<<c<<" \n";
+    c=7.0    ;
+    std::cout<<__LINE__<<" | "<<c<<" \n";
+    c=4.0    ;
+    std::cout<<__LINE__<<" | "<<c<<" \n";
+    c=3.0    ;
+    std::cout<<__LINE__<<" | "<<c<<" \n";
+    c=-3.0    ;
+    std::cout<<__LINE__<<" | "<<c<<" \n";
+    c=-4.0    ;
+    std::cout<<__LINE__<<" | "<<c<<" \n";
+
+    d=2.0    ;
+    std::cout<<__LINE__<<" | "<<d<<" \n";
+    d=7.0    ;
+    std::cout<<__LINE__<<" | "<<d<<" \n";
+    d=4.0    ;
+    std::cout<<__LINE__<<" | "<<d<<" \n";
+    d=3.0    ;
+    std::cout<<__LINE__<<" | "<<d<<" \n";
+    d=0.0    ;
+    std::cout<<__LINE__<<" | "<<d<<" \n";
+    d=0.0    ;
+    std::cout<<__LINE__<<" | "<<(d<<5)<<" \n";
+
+    ap_uint<32> MU1[N_DY_GEN] ;
+    ap_uint<32> MU2[N_DY_GEN] ;
+    drellYanPairGenerator( MU1,MU2 );
     std::cout<<" Obtained patterns : "<<"\n";
     randFW::muon mu;
-    for(int i=0;i<N_DY_GEN;i++)
+    for(int i=0; i<N_DY_GEN; i++)
     {
         std::cout<<"  > "<<MU1[i]<<" | "<<MU2[i]<<"\n";
         mu.unpack(MU1[i]);
