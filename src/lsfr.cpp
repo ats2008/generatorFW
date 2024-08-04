@@ -10,6 +10,7 @@ lsfr_14Bit randFW::randomWord_4Bit::b1=lsfr_14Bit();
 lsfr_13Bit randFW::randomWord_4Bit::b0=lsfr_13Bit();
 
 bool randFW::randomWord_16Bit::isInitialized=0;
+bool randFW::randomWord_16Bit::isInitialized_f=0;
 ap_uint<16> randFW::randomWord_16Bit::current_state=0;
 lsfr_16Bit  randFW::randomWord_16Bit::b3[4] ;
 lsfr_15Bit  randFW::randomWord_16Bit::b2[4] ;
@@ -25,6 +26,7 @@ ap_uint<13> randFW::randomWord_16BitStandalone::current_state_b0[4] ;
 
 
 bool            randFW::GeneratorBase::isInitialized(0);
+bool            randFW::GeneratorBase::isInitialized_f(0);
 ap_fixed<16,2>  randFW::GeneratorBase::_lut_sintheta[1024];
 ap_fixed<16,4>  randFW::GeneratorBase::_lut_eta[1024];
 ap_ufixed<16,3> randFW::GeneratorBase::_lut_phi[256];
@@ -124,6 +126,23 @@ void GeneratorBase::init()
     }
 }
 
+void GeneratorBase::init_f( uint8_t seed)
+{
+    randomWord_16Bit wordgen;
+    if(not isInitialized_f)
+    {
+        wordgen.init_f(seed);
+        if(not isInitialized) 
+        {
+            _lutFill_sintheta(_lut_sintheta);
+            _lutFill_eta(_lut_eta);
+            _lutFill_phi(_lut_phi);     
+            isInitialized=true;
+        }
+        isInitialized_f=true;
+    }
+}
+
 ap_uint<128> DellYanGenerator::getDimuonPairs()
 {
     randomWord_16Bit wordGen;
@@ -136,24 +155,23 @@ ap_uint<128> DellYanGenerator::getDimuonPairs()
     ap_uint<10> rid2=word & 0x3ff;
     word=word >>10;
 
-    //std::cout<<"     >  RIDs   : "<<rid1<<" | "<<rid2<<" | "<<rid3<<"\n";
+    std::cout<<"KER     >  RIDs   : "<<rid1<<" | "<<rid2<<" | "<<rid3<<"\n";
     muon mu1,mu2;
     mu1.eta  = _lut_eta[rid2];
     mu2.eta  = -mu1.eta;
     ap_ufixed<18,8> mass = randFW::drellYanMassQuantiles[rid1] ;
     mu1.pt   =  mass*_lut_sintheta[rid2];
     mu2.pt   =  mu1.pt;
-    //std::cout<<"         mass : "<<randFW::drellYanMassQuantiles[rid1]<<"  | "<<mass<<" | "<<_lut_sintheta[rid2]<<"  , pt = "<<mu1.pt<<"\n";
-
+    std::cout<<"KER         mass : "<<float(randFW::drellYanMassQuantiles[rid1])<<"  | "<<float(mass)<<" | "<<float(_lut_sintheta[rid2])<<"  , pt = "<<float(mu1.pt)<<"\n";
     mu1.phi = _lut_phi[rid3];
     mu2.phi = rid3 < 128 ?  _lut_phi[rid3+128] : _lut_phi[rid3-128] ;
 
     ap_uint<128> MU1 = mu1.pack() ;
-    ap_uint<64> mux = mu2.pack();
-    std::cout<<"    > Mu1/2  : "<<mu1.pack()<<" /  "<<mu2.pack()<<"\n";
     MU1  = MU1 << 64  ;
     MU1  = MU1  |  mu2.pack()  ;
 #ifndef __SYNTHESIS__
+    ap_uint<64> mux = mu2.pack();
+    std::cout<<"    > Mu1/2  : "<<mu1.pack()<<" /  "<<mu2.pack()<<"\n";
     std::cout<<"     > mass  : "<<mass
              <<" | pt : "<<mu1.pt<<" , "  <<mu2.pt
              <<" | eta : "<<mu1.eta<<" , "<<mu2.eta
@@ -197,16 +215,14 @@ extern "C" {
         #pragma HLS PIPELINE style=flp
 
 
-        randomWord_16Bit wordGen;
         randFW::DellYanGenerator dyGen;
 
-        MU1[0] = wordGen.isInitialized ;
-        dyGen.init();
+        dyGen.init_f(0);
         
         #ifndef __SYNTHESIS__
         for(int i=0;i<1024;i++)
         {
-            std::cout<<"LUT i = "<<i<<" | "<< float(dyGen._lut_eta[i])<<" , "<<float(dyGen._lut_sintheta[i])<<"\n";
+            std::cout<<"KER LUT i = "<<i<<" | "<< float(dyGen._lut_eta[i])<<" , "<<float(dyGen._lut_sintheta[i])<<"\n";
 
         }
         #endif
@@ -218,7 +234,7 @@ extern "C" {
         {
             diMuons[i]=dyGen.getDimuonPairs() ;
 #ifndef __SYNTHESIS__
-            std::cout<<" DIMU P : "<<diMuons[i]<<"\n";
+            std::cout<<"KER DIMU P : "<<diMuons[i]<<"\n";
 #endif
         }
 
@@ -227,7 +243,7 @@ extern "C" {
             MU1[i] = diMuons[i] & 0xffffffffffffffff;
             MU2[i] = (diMuons[i]>>64) & 0xffffffffffffffff;
 #ifndef __SYNTHESIS__
-            std::cout<<" > OUT PATTERNS : "<< diMuons[i]<<"   -> "<<MU1[i]<<" + "<<MU2[i]<<"\n";
+            std::cout<<"KER > OUT PATTERNS : "<< diMuons[i]<<"   -> "<<MU1[i]<<" + "<<MU2[i]<<"\n";
 #endif
         }
     }
