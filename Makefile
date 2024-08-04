@@ -33,12 +33,12 @@ ROOTFS=/opt/xilinx_local/xilinx-zynqmp-common-v2023.2
 
 
 ifeq (${KERNEL},DY)
-    KERNEL := drellYanPairGenerator
+    KER=drellYanPairGenerator
     HOST_SRC=src/host_dyGen.cpp 
     VPP_CFG=configs/dyGen.cfg
     HLS_CFG=configs/hls_config_dyGen.cfg
 else
-    KERNEL := randWordGen16Bit
+    KER=randWordGen16Bit
 endif
 
 
@@ -85,7 +85,7 @@ test: $(TEST_EXE)
 # Building kernel
 $(XO): ./src/lsfr.cpp ./include/lsfr.h
 ifeq ($(TARGET),sw_emu)
-	v++ $(CLFLAGS) -c -k $(KERNEL) -g -o'$@' '$<'
+	v++ $(CLFLAGS) -c -k $(KER) -g -o'$@' '$<'
 else
 	v++ --platform $(DEVICE) -c --mode hls --config $(HLS_CFG) 
 endif

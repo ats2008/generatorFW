@@ -26,8 +26,8 @@ ap_uint<13> randFW::randomWord_16BitStandalone::current_state_b0[4] ;
 
 bool            randFW::GeneratorBase::isInitialized(0);
 ap_fixed<16,2>  randFW::GeneratorBase::_lut_sintheta[1024];
-ap_fixed<10,4>  randFW::GeneratorBase::_lut_eta[1024];
-ap_ufixed<10,3> randFW::GeneratorBase::_lut_phi[256];
+ap_fixed<16,4>  randFW::GeneratorBase::_lut_eta[1024];
+ap_ufixed<16,3> randFW::GeneratorBase::_lut_phi[256];
 
 /*
 for(uint8_t i=0;i<4;i++ )
@@ -60,17 +60,19 @@ void _lutFill_sintheta(ap_fixed<16,2> _lut_sintheta[1024])
     for(int i=0; i<1024; i++)
     {
         #pragma HLS unroll
-        _lut_sintheta[i]= sqrt(i*(1024.0-i))/512.0;
-        // std::cout<< "("<<i<<",";
-        // auto x=_lut_sintheta[i];
-        // std::cout<<float(x);
-        // std::cout<<" ) ,";
+        _lut_sintheta[i]= sqrt(i*(1024.0-i))/1024.0;
+        #ifndef __SYNTHESIS__
+         std::cout<< "("<<i<<",";
+         auto x=_lut_sintheta[i];
+         std::cout<<float(x);
+         std::cout<<" ) ,";
+        #endif
         //_lut_sintheta[i]= fabs(sin( acos(1.0-2.0*i/1024.0) ));
         //_lut_sintheta[i]= sqrt(2.0*i/1024.0*(2-2.0*i/1024.0));
     }
     std::cout<<"\n";
 }
-void _lutFill_eta(ap_fixed<10,4> _lut_eta[1024])
+void _lutFill_eta(ap_fixed<16,4> _lut_eta[1024])
 {
     #pragma HLS array_partition variable=_lut_eta
     _lut_eta[0] = 10 ;
@@ -80,10 +82,12 @@ void _lutFill_eta(ap_fixed<10,4> _lut_eta[1024])
     {
         #pragma HLS unroll
         _lut_eta[i]= 0.5*log( 1024.0/i -1 );
-        // auto x=_lut_eta[i];       
-        // std::cout<< "("<<i<<",";
-        // std::cout<<float(x);
-        // std::cout<<" ) ,";
+        #ifndef __SYNTHESIS__
+         auto x=_lut_eta[i];       
+         std::cout<< "("<<i<<",";
+         std::cout<<float(x);
+         std::cout<<" ) ,";
+        #endif
         //_lut_eta[i]= -log(abs(1.0-2.0*i/1024.0 + 1e-9)/2.0 );
         //double y = 1.0-2.0*i/1024.0 ;
         //y= std::acos(y);
@@ -96,7 +100,7 @@ void _lutFill_eta(ap_fixed<10,4> _lut_eta[1024])
     }
     std::cout<<"\n";
 }
-void _lutFill_phi(ap_ufixed<10,3> _lut_phi[256])
+void _lutFill_phi(ap_ufixed<16,3> _lut_phi[256])
 {
     #pragma HLS array_partition variable=_lut_phi
     for(int i=0; i<256; i++)
@@ -112,13 +116,15 @@ void GeneratorBase::init()
     wordgen.init();
     if( not isInitialized)
     {
+        std::cout<<"Initializing the LUTS \n";
         _lutFill_sintheta(_lut_sintheta);
         _lutFill_eta(_lut_eta);
         _lutFill_phi(_lut_phi);
+        isInitialized=true;
     }
 }
 
-ap_uint<64> DellYanGenerator::getDimuonPairs()
+ap_uint<128> DellYanGenerator::getDimuonPairs()
 {
     randomWord_16Bit wordGen;
     ap_uint<16> word= wordGen.getRandom();
@@ -131,24 +137,22 @@ ap_uint<64> DellYanGenerator::getDimuonPairs()
     word=word >>10;
 
     //std::cout<<"     >  RIDs   : "<<rid1<<" | "<<rid2<<" | "<<rid3<<"\n";
-    ap_ufixed<12,8> mass = randFW::drellYanMassQuantiles[rid1];
     muon mu1,mu2;
-
     mu1.eta  = _lut_eta[rid2];
-    mu2.eta = -mu1.eta;
+    mu2.eta  = -mu1.eta;
+    ap_ufixed<18,8> mass = randFW::drellYanMassQuantiles[rid1] ;
     mu1.pt   =  mass*_lut_sintheta[rid2];
-    mu1.pt   *=ap_ufixed<3,2>(0.5);
     mu2.pt   =  mu1.pt;
     //std::cout<<"         mass : "<<randFW::drellYanMassQuantiles[rid1]<<"  | "<<mass<<" | "<<_lut_sintheta[rid2]<<"  , pt = "<<mu1.pt<<"\n";
 
     mu1.phi = _lut_phi[rid3];
     mu2.phi = rid3 < 128 ?  _lut_phi[rid3+128] : _lut_phi[rid3-128] ;
 
-    ap_uint<64> MU1 = mu1.pack();
-    ap_uint<32> mux = mu2.pack();
+    ap_uint<128> MU1 = mu1.pack() ;
+    ap_uint<64> mux = mu2.pack();
     std::cout<<"    > Mu1/2  : "<<mu1.pack()<<" /  "<<mu2.pack()<<"\n";
-    MU1  = MU1 <<32 ;
-    MU1  = MU1 | mu2.pack()  ;
+    MU1  = MU1 << 64  ;
+    MU1  = MU1  |  mu2.pack()  ;
 #ifndef __SYNTHESIS__
     std::cout<<"     > mass  : "<<mass
              <<" | pt : "<<mu1.pt<<" , "  <<mu2.pt
@@ -182,7 +186,7 @@ extern "C" {
         }
     }
 
-    void drellYanPairGenerator( ap_uint<32> MU1[N_DY_GEN], ap_uint<32> MU2[N_DY_GEN])
+    void drellYanPairGenerator( ap_uint<64> MU1[N_DY_GEN], ap_uint<64> MU2[N_DY_GEN])
     {
         #pragma HLS INTERFACE m_axi offset=SLAVE bundle=gmem port=MU1
         #pragma HLS INTERFACE m_axi offset=SLAVE bundle=gmem port=MU2
@@ -199,15 +203,16 @@ extern "C" {
         MU1[0] = wordGen.isInitialized ;
         dyGen.init();
         
+        #ifndef __SYNTHESIS__
         for(int i=0;i<1024;i++)
         {
             std::cout<<"LUT i = "<<i<<" | "<< float(dyGen._lut_eta[i])<<" , "<<float(dyGen._lut_sintheta[i])<<"\n";
 
         }
+        #endif
 
-        ap_uint<64> diMuons[N_DY_GEN];
-        
-        #pragma HLS array_partition diMuons
+        ap_uint<128> diMuons[N_DY_GEN];
+        #pragma HLS array_partition variable=diMuons
         
   DiMuGenLoop:     for( int i =0 ; i < N_DY_GEN ; i++)
         {
@@ -219,8 +224,8 @@ extern "C" {
 
   DiMuCopyLoop:for( int i =0 ; i < N_DY_GEN ; i++)
         {
-            MU1[i] = diMuons[i] & 0xffffffff;
-            MU2[i] = (diMuons[i]>>32) & 0xffffffff;
+            MU1[i] = diMuons[i] & 0xffffffffffffffff;
+            MU2[i] = (diMuons[i]>>64) & 0xffffffffffffffff;
 #ifndef __SYNTHESIS__
             std::cout<<" > OUT PATTERNS : "<< diMuons[i]<<"   -> "<<MU1[i]<<" + "<<MU2[i]<<"\n";
 #endif

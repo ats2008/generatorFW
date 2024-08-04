@@ -6,6 +6,7 @@
 using namespace std;
 
 #include "ap_int.h"
+#include "ap_fixed.h"
 #define N 20
 #define LSFR_LENGTH 16
 #define LSFR_INIT 0xACE1u
@@ -34,7 +35,7 @@ namespace randFW
         0xcb8eu,0xe93cu
     };
 
-    static const ap_ufixed<16,8> drellYanMassQuantiles[256]=
+    static const ap_ufixed<18,8> drellYanMassQuantiles[256]=
     {
         6.094,6.150,6.199,6.246,6.287,6.326,6.359,6.399,6.438,
         6.470,6.504,6.539,6.574,6.615,6.649,6.678,6.710,6.742,6.773,
@@ -195,6 +196,7 @@ namespace randFW
         {
             if(not isInitialized)
             {
+                std::cout<<"Initializing the randomWord_16Bit \n";
                 for(uint8_t i=0; i<4; i++ )
                 {
                     b3[i].init();
@@ -340,34 +342,36 @@ namespace randFW
 
     struct muon
     {
-        ap_ufixed<12,8> pt;
-        ap_fixed<10,4>  eta;
-        ap_ufixed<10,3> phi;
-        ap_uint<32> pack ()
+        ap_ufixed<16,8> pt;
+        ap_fixed<16,4>  eta;
+        ap_ufixed<16,3> phi;
+        ap_uint<64> pack ()
         {
-            return  (pt(11,0) << 20 ) | (eta(9,0)  <<10 ) | phi(9,0);
+            #pragma HLS INLINE
+            return  (pt(15,0) << 32 ) | (eta(15,0)  <<16 ) | phi(15,0);
         }
-        void unpack(ap_uint<32> data)
+        void unpack(ap_uint<64> data)
         {
-            pt(11,0) =data(31,20);
-            eta(9,0) =data(19,10);
-            phi(9,0) =data( 9, 0);
+            #pragma HLS INLINE
+            pt(15,0)  =data(47,32);
+            eta(15,0) =data(31,16);
+            phi(15,0) =data( 15, 0);
         }
 
     };
 
-    struct GeneratorBase :
+    struct GeneratorBase 
     {
-        static ap_fixed<16,2> _lut_sintheta[1024];
-        static ap_fixed<10,4> _lut_eta[1024];
-        static ap_ufixed<10,3> _lut_phi[256];
+        static ap_fixed<16,2>  _lut_sintheta[1024];
+        static ap_fixed<16,4>  _lut_eta[1024];
+        static ap_ufixed<16,3> _lut_phi[256];
         static bool isInitialized;
         void init();
-    }
+    };
 
-    struct DellYanGenerator
+    struct DellYanGenerator : GeneratorBase
     {
-        ap_uint<64>  getDimuonPairs();
+        ap_uint<128>  getDimuonPairs();
     };
 
 
@@ -375,7 +379,7 @@ namespace randFW
 
 extern "C" {
     void randWordGen16Bit(bool status,ap_uint<16> randNum[5]);
-    void drellYanPairGenerator( ap_uint<32> MU1[N_DY_GEN], ap_uint<32> MU2[N_DY_GEN]);
+    void drellYanPairGenerator( ap_uint<64> MU1[N_DY_GEN], ap_uint<64> MU2[N_DY_GEN]);
 }
 
 #endif

@@ -309,8 +309,8 @@ void testBench_DYGen()
     d=0.0    ;
     std::cout<<__LINE__<<" | "<<(d<<5)<<" \n";
 
-    ap_uint<32> MU1[N_DY_GEN] ;
-    ap_uint<32> MU2[N_DY_GEN] ;
+    ap_uint<64> MU1[N_DY_GEN] ;
+    ap_uint<64> MU2[N_DY_GEN] ;
     drellYanPairGenerator( MU1,MU2 );
     std::cout<<" Obtained patterns : "<<"\n";
     randFW::muon mu;

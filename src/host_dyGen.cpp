@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     std::cout << "Load the xclbin " << binaryFile << std::endl;
     auto uuid = device.load_xclbin(binaryFile);
 
-    size_t vector_size_bytes = N_DY_GEN*sizeof(ap_uint<32>);
+    size_t vector_size_bytes = N_DY_GEN*sizeof(ap_uint<64>);
 
     //auto krnl = xrt::kernel(device, uuid, "vadd");
     auto krnl = xrt::kernel(device, uuid, "drellYanPairGenerator");//, xrt::kernel::cu_access_mode::exclusive);
@@ -56,9 +56,9 @@ int main(int argc, char** argv)
 
     std::cout<<" got bo s \n";
     // Map the contents of the buffer object into host memory
-    auto mu1_map = mu1.map<ap_uint<32> *>();
+    auto mu1_map = mu1.map<ap_uint<64> *>();
     //std::fill(mu1_map, mu1_map + vector_size_bytes, 0);
-    auto mu2_map = mu2.map<ap_uint<32> *>();
+    auto mu2_map = mu2.map<ap_uint<64> *>();
     //std::fill(mu2_map, mu2_map + vector_size_bytes, 0);
     std::cout<<" done fillingup  \n";
 
@@ -66,21 +66,20 @@ int main(int argc, char** argv)
     //std::cout << "synchronize input buffer data to device global memory\n";
     //boIn1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
-    std::cout << "  > Execution of the kernel : drellYanPairGenerator "<<"\n";
-    auto run = krnl(mu1,mu2); //DATA_SIZE=size
-    run.wait();
-    std::cout << "  > Get the output data from the device" << std::endl;
-    mu1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-    mu2.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-
     randFW::muon mu;
     ofstream ofile("data.dat");
-    for(size_t j=0; j<100; j++)
+    for(size_t j=0; j<128; j++)
     {
+    
+        std::cout << "  > Execution of the kernel : drellYanPairGenerator "<<"\n";
+        auto run = krnl(mu1,mu2); //DATA_SIZE=size
+        run.wait();
+        std::cout << "  > Get the output data from the device" << std::endl;
+        mu1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+        mu2.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 
         if((j%8)==0)
             std::cout<<"  Making j="<<j<<" th loop ! \n";
-
         for(int i=0; i<N_DY_GEN; i++)
         {
             mu.unpack(mu1_map[i]);
