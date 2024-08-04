@@ -82,10 +82,10 @@ namespace randFW
         LSFR() //start_state(randomNumberSeeds[lsfr_init_count])
         {
 //	      		        std::cout<<"Initializing with "<<randBase::lsfr_init_count<<" -> "<<randomNumberSeeds[randBase::lsfr_init_count]<<"\n";
+            randBase::lsfr_init_count++;
             init_state_id=randBase::lsfr_init_count;
             start_state=randomNumberSeeds[randBase::lsfr_init_count];
             current_state=start_state;
-            randBase::lsfr_init_count++;
         }
 
 
@@ -97,6 +97,10 @@ namespace randFW
         void init()
         {
             current_state=randFW::randomNumberSeeds[init_state_id];
+        }
+        void init_f( uint8_t seed)
+        {
+            current_state=randFW::randomNumberSeeds[seed];
         }
 
     };
@@ -190,6 +194,7 @@ namespace randFW
         static lsfr_14Bit b1[4];
         static lsfr_13Bit b0[4];
         static bool isInitialized;
+        static bool isInitialized_f;
         static ap_uint<16> current_state;
 
         void init()
@@ -208,6 +213,24 @@ namespace randFW
             }
 
         }
+
+        void init_f(uint8_t seed)
+        {
+            if(not isInitialized_f)
+            {
+                std::cout<<"Initializing the randomWord_16Bit \n";
+                for(uint8_t i=0; i<4; i++ )
+                {
+                    b3[i].init_f( seed + i*4  );
+                    b2[i].init_f( seed + i*4+1);
+                    b1[i].init_f( seed + i*4+2);
+                    b0[i].init_f( seed + i*4+3);
+                }
+                isInitialized_f=true;
+            }
+
+        }
+
         ap_uint<16> getRandom()
         {
             #pragma HLS PIPELINE
@@ -366,7 +389,9 @@ namespace randFW
         static ap_fixed<16,4>  _lut_eta[1024];
         static ap_ufixed<16,3> _lut_phi[256];
         static bool isInitialized;
+        static bool isInitialized_f;
         void init();
+        void init_f(uint8_t seed);
     };
 
     struct DellYanGenerator : GeneratorBase

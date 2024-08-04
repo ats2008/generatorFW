@@ -88,20 +88,20 @@ int main(int argc, char** argv)
         mu1.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
         mu2.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
 
-        if((j%8)==0)
+        if((j%1)==0)
             std::cout<<"  Making j="<<j<<" th loop ! \n";
         for(int i=0; i<128; i++)
         {
-            uintMu(63,0) = mu1_map[i];
-            st(15,0) =(uintMu>>(16+16+18)) & 0xffff ;
-            et(15,0) =(uintMu>>(16+18)) & 0xffff  ;
-            ph(15,0) =(uintMu>>18) & 0xffff ;
             uintMu(63,0) = mu2_map[i];
+            std::cout<<"HOST Mu2 pTRN  : "<<mu2_map[i]<<" /  uint ->"<<uintMu<<" | ";
+            st(15,0) =((uintMu>>32) & 0xffff) ;
+            et(15,0) =(uintMu>>16) & 0xffff  ;
+            ph(15,0) =uintMu & 0xffff ;
+            uintMu(63,0) = mu1_map[i];
             ma(17,0) = uintMu & 0x3ffff ;
-            std::cout<<"LUT | "<<i<<" | stheta : "<<st<<" , eta : "<<et<<" , phi : "<<ph<<" , mass : "<<ma<<"\n";
-
+            std::cout<<" LUT | "<<i<<" | stheta : "<<st<<"["<< (uintMu>>32) <<"]"<<" , eta : "<<et<<" , phi : "<<ph<<" , mass : "<<ma<<"\n";
         }
-        for(int i=128; i<512; i+2)
+        for(int i=128; i<512; i+=2)
         {
             ofile<<i+j*1024<<",";
             mu.unpack(mu1_map[i]);
@@ -110,29 +110,29 @@ int main(int argc, char** argv)
             ofile<<mu.pt<<","<<mu.eta<<","<<mu.phi<<",";
             ofile<<mu1_map[i]<<","<<mu2_map[i];
             ofile<<"\n";
-            if((j%16)==0)
-                if((i%256)==0)
+            if((j%1)==0)
+                if((i%1)==0)
                 {
-                    std::cout<<"  > "<<mu1_map[i]<<" | "<<mu2_map[i]<<"\n";
+                    std::cout<<"HOST  > "<<mu1_map[i]<<" | "<<mu2_map[i]<<"\n";
                     mu.unpack(mu1_map[i]);
                     std::cout<<"         mu1 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
                     mu.unpack(mu2_map[i]);
-                    std::cout<<"  XXX    mu2 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
+                    std::cout<<"HOST  XXX    mu2 > pt : "<<mu.pt<<" , eta : "<<mu.eta<<" phi : "<<mu.phi<<"   | ["<<mu.pt<<","<<mu.eta<<","<<mu.phi<<"] "<<"\n";
                 }
             
-            std::cout<<"  States --> from mu1 : "<<mu1_map[i+1]<<"  mu2 : "<<mu2_map[i+1]<<"  !! \n";
+            std::cout<<"HOST  States --> from mu1 : "<<mu1_map[i+1]<<"  mu2 : "<<mu2_map[i+1]<<"  !! \n";
             
             uintX(15,0) = (mu2_map[i]>>18) &0xff;
-            std::cout<<"   rand for gen -> rid 1( for mass ) "<<uintX<<"\n";
+            std::cout<<"HOST   rand for gen -> rid 1( for mass ) "<<uintX<<"\n";
             uintX(15,0) = (mu2_map[i]>>(18+8)) &0xff;
-            std::cout<<"   rand for gen -> rid 3( for phi ) "<<uintX<<"\n";
+            std::cout<<"HOST   rand for gen -> rid 3( for phi ) "<<uintX<<"\n";
             uintX(15,0) = (mu2_map[i]>>(18+8+8)) &0x3ff;
-            std::cout<<"   rand for gen -> rid 2( for eta/seta ) "<<uintX<<"\n";
+            std::cout<<"HOST   rand for gen -> rid 2( for eta/seta ) "<<uintX<<"\n";
             ma(17,0) = mu2_map[i](17,0);
             std::cout<<"   rand mass ->  "<<ma<<"\n";
             
             uintX(15,0) = mu1_map[i+1](47,32);
-            std::cout<<"   New set  -->  0 : "<<uintX;
+            std::cout<<"HOST   New set  -->  0 : "<<uintX;
             uintX(15,0) = mu1_map[i+1](31,16);
             std::cout<<"    -->  RAND : "<<uintX;
             uintX(15,0) = mu1_map[i+1](15,0);

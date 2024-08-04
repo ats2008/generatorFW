@@ -64,7 +64,7 @@ int main(int argc, char** argv)
     std::cout << "synchronize input buffer data to device global memory\n";
     boIn1.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
-    for(int i=0; i< 256; i++)
+    for(int i=0; i< 10000; i++)
     {
         std::cout << "  > Execution of the kernel : "<<i<<"\n";
         bool upd = (i%3)==0 ;
