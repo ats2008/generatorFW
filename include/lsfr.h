@@ -360,7 +360,7 @@ namespace randFW
 
     };
 
-    struct GeneratorBase 
+    struct GeneratorBase
     {
         static ap_fixed<16,2>  _lut_sintheta[1024];
         static ap_fixed<16,4>  _lut_eta[1024];

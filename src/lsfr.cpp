@@ -61,12 +61,12 @@ void _lutFill_sintheta(ap_fixed<16,2> _lut_sintheta[1024])
     {
         #pragma HLS unroll
         _lut_sintheta[i]= sqrt(i*(1024.0-i))/1024.0;
-        #ifndef __SYNTHESIS__
-         std::cout<< "("<<i<<",";
-         auto x=_lut_sintheta[i];
-         std::cout<<float(x);
-         std::cout<<" ) ,";
-        #endif
+#ifndef __SYNTHESIS__
+        std::cout<< "("<<i<<",";
+        auto x=_lut_sintheta[i];
+        std::cout<<float(x);
+        std::cout<<" ) ,";
+#endif
         //_lut_sintheta[i]= fabs(sin( acos(1.0-2.0*i/1024.0) ));
         //_lut_sintheta[i]= sqrt(2.0*i/1024.0*(2-2.0*i/1024.0));
     }
@@ -82,12 +82,12 @@ void _lutFill_eta(ap_fixed<16,4> _lut_eta[1024])
     {
         #pragma HLS unroll
         _lut_eta[i]= 0.5*log( 1024.0/i -1 );
-        #ifndef __SYNTHESIS__
-         auto x=_lut_eta[i];       
-         std::cout<< "("<<i<<",";
-         std::cout<<float(x);
-         std::cout<<" ) ,";
-        #endif
+#ifndef __SYNTHESIS__
+        auto x=_lut_eta[i];
+        std::cout<< "("<<i<<",";
+        std::cout<<float(x);
+        std::cout<<" ) ,";
+#endif
         //_lut_eta[i]= -log(abs(1.0-2.0*i/1024.0 + 1e-9)/2.0 );
         //double y = 1.0-2.0*i/1024.0 ;
         //y= std::acos(y);
@@ -148,12 +148,14 @@ ap_uint<128> DellYanGenerator::getDimuonPairs()
     mu1.phi = _lut_phi[rid3];
     mu2.phi = rid3 < 128 ?  _lut_phi[rid3+128] : _lut_phi[rid3-128] ;
 
-    ap_uint<128> MU1 = mu1.pack() ;
-    ap_uint<64> mux = mu2.pack();
-    std::cout<<"    > Mu1/2  : "<<mu1.pack()<<" /  "<<mu2.pack()<<"\n";
+    ap_uint<128> MU1 = rid3 ;
+    MU1  = (MU1 << 8)  | rid1 ;
+    MU1  = (MU1 << 8)  | rid2 ;
+    MU1  = (MU1 << 18) | mass(17,0) ;
     MU1  = MU1 << 64  ;
     MU1  = MU1  |  mu2.pack()  ;
 #ifndef __SYNTHESIS__
+    std::cout<<"    > Mu1/2  : "<<mu1.pack()<<" /  "<<mu2.pack()<<"\n";
     std::cout<<"     > mass  : "<<mass
              <<" | pt : "<<mu1.pt<<" , "  <<mu2.pt
              <<" | eta : "<<mu1.eta<<" , "<<mu2.eta
@@ -200,34 +202,49 @@ extern "C" {
         randomWord_16Bit wordGen;
         randFW::DellYanGenerator dyGen;
 
-        MU1[0] = wordGen.isInitialized ;
         dyGen.init();
-        
-        #ifndef __SYNTHESIS__
-        for(int i=0;i<1024;i++)
+
+#ifndef __SYNTHESIS__
+        for(int i=0; i<1024; i++)
         {
             std::cout<<"LUT i = "<<i<<" | "<< float(dyGen._lut_eta[i])<<" , "<<float(dyGen._lut_sintheta[i])<<"\n";
 
         }
-        #endif
+#endif
 
         ap_uint<128> diMuons[N_DY_GEN];
         #pragma HLS array_partition variable=diMuons
-        
-  DiMuGenLoop:     for( int i =0 ; i < N_DY_GEN ; i++)
+
+lutLoop:
+        for( int i =0 ; i < 128 ; i++)
         {
-            diMuons[i]=dyGen.getDimuonPairs() ;
+//            diMuons[i]=dyGen.getDimuonPairs() ;
+            diMuons[i]=dyGen._lut_sintheta[i](15,0)           ;
+            diMuons[i]=diMuons[i]<<16 | dyGen._lut_eta[i](15,0) ;
+            diMuons[i]=diMuons[i]<<16 | dyGen._lut_phi[i](15,0) ;
+            diMuons[i]=diMuons[i]<<64 | randFW::drellYanMassQuantiles[i](17,0)           ;
 #ifndef __SYNTHESIS__
-            std::cout<<" DIMU P : "<<diMuons[i]<<"\n";
+            std::cout<<" DIMU P : "<<i<<" : "<<diMuons[i]<<"\n";
 #endif
         }
 
-  DiMuCopyLoop:for( int i =0 ; i < N_DY_GEN ; i++)
+genLoop:
+        for( int i =128 ; i < 1024 ; i+=2)
+        {
+
+            diMuons[i]  =dyGen.getDimuonPairs()  ;
+            diMuons[i+1]=wordGen.current_state ;
+            diMuons[i+1]= diMuons[i+1] << 16 |  wordGen.getRandom();
+            diMuons[i+1]= diMuons[i+1] << 16 |  wordGen.current_state;
+        }
+
+copyLoop:
+        for( int i =0 ; i < 512 ; i++)
         {
             MU1[i] = diMuons[i] & 0xffffffffffffffff;
             MU2[i] = (diMuons[i]>>64) & 0xffffffffffffffff;
 #ifndef __SYNTHESIS__
-            std::cout<<" > OUT PATTERNS : "<< diMuons[i]<<"   -> "<<MU1[i]<<" + "<<MU2[i]<<"\n";
+            std::cout<<" > "<<i<<"OUT PATTERNS : "<< diMuons[i]<<"   -> "<<MU1[i]<<" + "<<MU2[i]<<"\n";
 #endif
         }
     }
