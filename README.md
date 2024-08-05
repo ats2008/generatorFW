@@ -13,17 +13,32 @@ The base implementation can be found in  `include/lsfr.h` and `src/lsfr.cpp` fil
 The codebase also has a PS-PL validation workflow setup based on XRT.
 
 For making the testbench
-```
+```bash
 make test
 ```
 
-For maing the `sw_emu`
-```
+For making the `sw_emu`
+```bash
 make all TARGET=sw_emu
 ```
 
 for full set of options `make help`
 
+## Drell-Yan Events at 13TeV
+
+For making the .xclbin and the host code for intefacing the kernel
+```
+make all TARGET=hw KERNEL=DY
+```
+The host code outputs `data.dat` file which containes the information of the created di-muon pairs. See `python/plot_drellYan.py` script understand the ouput description.
+
+For making distribution plots, use :
+```bash
+python python/plot_drellYan.py -i data.dat -t HW
+```
+
+TODO :
+    * Incorporate boosts to Lab frame
 
 
 _AStyle configuration_
