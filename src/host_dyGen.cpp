@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     ofstream ofile("data.dat");
     for(size_t j=0; j<128; j++)
     {
-    
+
         std::cout << "  > Execution of the kernel : drellYanPairGenerator "<<"\n";
         auto run = krnl(mu1,mu2); //DATA_SIZE=size
         run.wait();

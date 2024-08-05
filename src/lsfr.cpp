@@ -63,12 +63,12 @@ void _lutFill_sintheta(ap_fixed<16,2> _lut_sintheta[1024])
     {
         #pragma HLS unroll
         _lut_sintheta[i]= sqrt(i*(1024.0-i))/1024.0;
-        #ifndef __SYNTHESIS__
-         std::cout<< "("<<i<<",";
-         auto x=_lut_sintheta[i];
-         std::cout<<float(x);
-         std::cout<<" ) ,";
-        #endif
+#ifndef __SYNTHESIS__
+        std::cout<< "("<<i<<",";
+        auto x=_lut_sintheta[i];
+        std::cout<<float(x);
+        std::cout<<" ) ,";
+#endif
         //_lut_sintheta[i]= fabs(sin( acos(1.0-2.0*i/1024.0) ));
         //_lut_sintheta[i]= sqrt(2.0*i/1024.0*(2-2.0*i/1024.0));
     }
@@ -84,12 +84,12 @@ void _lutFill_eta(ap_fixed<16,4> _lut_eta[1024])
     {
         #pragma HLS unroll
         _lut_eta[i]= 0.5*log( 1024.0/i -1 );
-        #ifndef __SYNTHESIS__
-         auto x=_lut_eta[i];       
-         std::cout<< "("<<i<<",";
-         std::cout<<float(x);
-         std::cout<<" ) ,";
-        #endif
+#ifndef __SYNTHESIS__
+        auto x=_lut_eta[i];
+        std::cout<< "("<<i<<",";
+        std::cout<<float(x);
+        std::cout<<" ) ,";
+#endif
         //_lut_eta[i]= -log(abs(1.0-2.0*i/1024.0 + 1e-9)/2.0 );
         //double y = 1.0-2.0*i/1024.0 ;
         //y= std::acos(y);
@@ -132,11 +132,11 @@ void GeneratorBase::init_f( uint8_t seed)
     if(not isInitialized_f)
     {
         wordgen.init_f(seed);
-        if(not isInitialized) 
+        if(not isInitialized)
         {
             _lutFill_sintheta(_lut_sintheta);
             _lutFill_eta(_lut_eta);
-            _lutFill_phi(_lut_phi);     
+            _lutFill_phi(_lut_phi);
             isInitialized=true;
         }
         isInitialized_f=true;
@@ -218,19 +218,20 @@ extern "C" {
         randFW::DellYanGenerator dyGen;
 
         dyGen.init_f(0);
-        
-        #ifndef __SYNTHESIS__
-        for(int i=0;i<1024;i++)
+
+#ifndef __SYNTHESIS__
+        for(int i=0; i<1024; i++)
         {
             std::cout<<"KER LUT i = "<<i<<" | "<< float(dyGen._lut_eta[i])<<" , "<<float(dyGen._lut_sintheta[i])<<"\n";
 
         }
-        #endif
+#endif
 
         ap_uint<128> diMuons[N_DY_GEN];
         #pragma HLS array_partition variable=diMuons
-        
-  DiMuGenLoop:     for( int i =0 ; i < N_DY_GEN ; i++)
+
+DiMuGenLoop:
+        for( int i =0 ; i < N_DY_GEN ; i++)
         {
             diMuons[i]=dyGen.getDimuonPairs() ;
 #ifndef __SYNTHESIS__
@@ -238,7 +239,8 @@ extern "C" {
 #endif
         }
 
-  DiMuCopyLoop:for( int i =0 ; i < N_DY_GEN ; i++)
+DiMuCopyLoop:
+        for( int i =0 ; i < N_DY_GEN ; i++)
         {
             MU1[i] = diMuons[i] & 0xffffffffffffffff;
             MU2[i] = (diMuons[i]>>64) & 0xffffffffffffffff;
