@@ -38,7 +38,9 @@ python python/plot_drellYan.py -i data.dat -t HW
 ```
 
 TODO :
-    * Incorporate boosts to Lab frame
+ *  Incorporate boosts to Lab frame
+ *  Finer mother mass distribution
+    * or maybe better representation to draw mass from ?  usage of trees ? 
 
 
 _AStyle configuration_
