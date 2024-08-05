@@ -6,9 +6,12 @@
 using namespace std;
 
 #include "ap_int.h"
+#include "ap_fixed.h"
 #define N 20
 #define LSFR_LENGTH 16
 #define LSFR_INIT 0xACE1u
+
+#define N_DY_GEN 1024
 
 namespace randFW
 {
@@ -32,6 +35,38 @@ namespace randFW
         0xcb8eu,0xe93cu
     };
 
+    static const ap_ufixed<18,8> drellYanMassQuantiles[256]=
+    {
+        6.094,6.150,6.199,6.246,6.287,6.326,6.359,6.399,6.438,
+        6.470,6.504,6.539,6.574,6.615,6.649,6.678,6.710,6.742,6.773,
+        6.797,6.822,6.849,6.876,6.904,6.938,6.966,6.986,7.016,7.042,
+        7.074,7.098,7.127,7.149,7.181,7.209,7.234,7.261,7.277,7.299,
+        7.337,7.363,7.390,7.425,7.453,7.486,7.519,7.551,7.583,7.624,
+        7.654,7.687,7.712,7.744,7.783,7.810,7.837,7.865,7.907,7.940,
+        7.985,8.021,8.057,8.085,8.112,8.149,8.184,8.213,8.249,8.295,
+        8.336,8.368,8.417,8.455,8.487,8.537,8.574,8.603,8.634,8.660,
+        8.699,8.748,8.789,8.825,8.862,8.890,8.926,8.959,8.987,9.029,
+        9.058,9.107,9.149,9.199,9.247,9.278,9.335,9.382,9.430,9.465,
+        9.522,9.563,9.608,9.650,9.704,9.760,9.810,9.853,9.913,9.967,
+        10.025,10.073,10.123,10.162,10.221,10.273,10.332,10.408,10.470,10.540,
+        10.601,10.680,10.738,10.805,10.888,10.951,11.009,11.104,11.167,11.233,
+        11.301,11.363,11.451,11.497,11.580,11.644,11.715,11.811,11.882,11.944,
+        12.026,12.094,12.154,12.235,12.319,12.423,12.515,12.609,12.738,12.842,
+        12.930,13.058,13.175,13.300,13.397,13.500,13.632,13.773,13.873,13.990,
+        14.147,14.272,14.364,14.490,14.675,14.812,14.996,15.144,15.309,15.469,
+        15.666,15.865,16.050,16.216,16.365,16.579,16.844,17.105,17.319,17.605,
+        17.907,18.136,18.469,18.755,18.981,19.276,19.702,20.163,20.499,20.972,
+        21.375,21.833,22.340,22.803,23.212,23.786,24.570,25.325,26.057,26.869,
+        28.161,29.524,31.006,32.989,35.570,38.509,42.675,48.534,58.551,73.563,
+        78.714,82.968,85.865,87.027,87.804,88.382,88.953,89.239,89.477,89.709,
+        89.890,90.041,90.195,90.306,90.441,90.544,90.637,90.739,90.853,90.924,
+        91.005,91.106,91.158,91.261,91.347,91.446,91.514,91.595,91.706,91.805,
+        91.905,92.007,92.116,92.234,92.353,92.526,92.677,92.895,93.201,93.523,
+        93.993,94.565,95.708,97.420,102.239,109.776,174.041
+    };
+
+
+
     struct randBase
     {
         static ap_uint<8> lsfr_init_count;
@@ -47,10 +82,10 @@ namespace randFW
         LSFR() //start_state(randomNumberSeeds[lsfr_init_count])
         {
 //	      		        std::cout<<"Initializing with "<<randBase::lsfr_init_count<<" -> "<<randomNumberSeeds[randBase::lsfr_init_count]<<"\n";
-            init_state_id=randBase::lsfr_init_count;
             start_state=randomNumberSeeds[randBase::lsfr_init_count];
             current_state=start_state;
             randBase::lsfr_init_count++;
+            init_state_id=randBase::lsfr_init_count;
         }
 
 
@@ -63,6 +98,11 @@ namespace randFW
         {
             current_state=randFW::randomNumberSeeds[init_state_id];
         }
+        void init_f( uint8_t seed)
+        {
+            current_state=randFW::randomNumberSeeds[seed];
+        }
+
 
     };
 
@@ -155,12 +195,14 @@ namespace randFW
         static lsfr_14Bit b1[4];
         static lsfr_13Bit b0[4];
         static bool isInitialized;
+        static bool isInitialized_f;
         static ap_uint<16> current_state;
 
         void init()
         {
             if(not isInitialized)
             {
+                std::cout<<"Initializing the randomWord_16Bit \n";
                 for(uint8_t i=0; i<4; i++ )
                 {
                     b3[i].init();
@@ -172,6 +214,24 @@ namespace randFW
             }
 
         }
+
+        void init_f(uint8_t seed)
+        {
+            if(not isInitialized_f)
+            {
+                std::cout<<"Initializing the randomWord_16Bit \n";
+                for(uint8_t i=0; i<4; i++ )
+                {
+                    b3[i].init_f( seed + i*4  );
+                    b2[i].init_f( seed + i*4+1);
+                    b1[i].init_f( seed + i*4+2);
+                    b0[i].init_f( seed + i*4+3);
+                }
+                isInitialized_f=true;
+            }
+
+        }
+
         ap_uint<16> getRandom()
         {
             #pragma HLS PIPELINE
@@ -197,7 +257,6 @@ namespace randFW
         static ap_uint<15> current_state_b2[4];
         static ap_uint<14> current_state_b1[4];
         static ap_uint<13> current_state_b0[4];
-
         ap_uint<16> current_state_w;
 
         static bool isInitialized;
@@ -304,12 +363,49 @@ namespace randFW
         }
     };
     static randomWord_16BitStandalone testWord;
+
+    struct muon
+    {
+        ap_ufixed<16,8> pt;
+        ap_fixed<16,4>  eta;
+        ap_ufixed<16,3> phi;
+        ap_uint<64> pack ()
+        {
+            #pragma HLS INLINE
+            return  (pt(15,0) << 32 ) | (eta(15,0)  <<16 ) | phi(15,0);
+        }
+        void unpack(ap_uint<64> data)
+        {
+            #pragma HLS INLINE
+            pt(15,0)  =data(47,32);
+            eta(15,0) =data(31,16);
+            phi(15,0) =data( 15, 0);
+        }
+
+    };
+
+    struct GeneratorBase
+    {
+        static ap_fixed<16,2>  _lut_sintheta[1024];
+        static ap_fixed<16,4>  _lut_eta[1024];
+        static ap_ufixed<16,3> _lut_phi[256];
+        static bool isInitialized;
+        static bool isInitialized_f;
+        void init();
+        void init_f(uint8_t seed);
+    };
+
+    struct DellYanGenerator : GeneratorBase
+    {
+        ap_uint<128>  getDimuonPairs();
+    };
+
+
 }
 
 extern "C" {
     void randWordGen16Bit(bool status,ap_uint<16> randNum[5]);
-    void init_generator();
-
+    void drellYanPairGenerator( ap_uint<64> MU1[N_DY_GEN], ap_uint<64> MU2[N_DY_GEN]);
 }
 
 #endif
